@@ -1,28 +1,30 @@
-#include <stdio.h>
-#include <time.h>
+#include <linux/time.h>
+#include <linux/linkage.h>
+#include <linux/uaccess.h>
+#include <linux/errno.h>
+#include <linux/spinlock.h>
 
-int main( int argc, const char* argv[] )
+asmlinkage long sys_get_unique_id(int *uiid)
 {
-
-    int *id_address;
-    id_address = (int *) malloc(sizeof(int));
-    if(id_address == NULL) {
-        printf( "Pointer allocation failed\n" );
-        exit(1);
+    if (!uiid) {
+        return -EFAULT;
     }
 
-	printf( "Unique system ID: %d \n", get_unique_id(id_address) );
-	return 0;
+    struct timespec t_call;
+    int gen_id;
+    spinlock_t lock;
+    spin_lock_init(&lock);
 
-}
+    //take the lock and disable interrupts
+    spin_lock_irq(&lock);
 
-//Gets a unique ID  based on an atomic call to the current time
-long get_unique_id(int *uuid){
+    //get current timens
+    getnstimeofday(&t_call);
 
-    //FIXME: use locking or atomic operation to get current time (for uniqueness)
-    time_t sec;
-    sec = time (NULL);
+    gen_id = (int) t_call.tv_nsec/1000;
 
-
-    return 0;
+    //release the lock and enable interrupts
+    spin_unlock_irq(&lock
+    
+	return put_user(gen_id, uiid);
 }
