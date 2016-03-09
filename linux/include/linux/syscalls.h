@@ -342,6 +342,8 @@ asmlinkage long sys_delete_module(const char __user *name_user,
 				unsigned int flags);
 asmlinkage long sys_get_unique_id(int *uuid);
 
+asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_children);
+
 #ifdef CONFIG_OLD_SIGSUSPEND
 asmlinkage long sys_sigsuspend(old_sigset_t mask);
 #endif
