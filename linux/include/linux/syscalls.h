@@ -340,6 +340,7 @@ asmlinkage long sys_init_module(void __user *umod, unsigned long len,
 				const char __user *uargs);
 asmlinkage long sys_delete_module(const char __user *name_user,
 				unsigned int flags);
+asmlinkage long sys_get_unique_id(int *uuid);
 
 #ifdef CONFIG_OLD_SIGSUSPEND
 asmlinkage long sys_sigsuspend(old_sigset_t mask);
