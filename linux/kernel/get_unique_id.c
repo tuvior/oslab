@@ -6,13 +6,11 @@
 asmlinkage long sys_get_unique_id(int *uiid)
 {
     static int i_uuid = 0;
-    static spinlock_t lock;
+    static spinlock_t lock = SPIN_LOCK_UNLOCKED;
 
     if (!uiid) {
         return -EFAULT;
     }
-
-    spin_lock_init(&lock);
 
     //take the lock and disable interrupts
     spin_lock_irq(&lock);
