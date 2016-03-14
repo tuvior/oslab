@@ -46,11 +46,11 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
   	read_unlock(&tasklist_lock);
 
 	// set num_children
-	put_user(curr_child, num_children);
+	res = put_user(curr_child, num_children);
 
 	if (stored_child < curr_child && limit != 0) {
 		return -ENOBUFS;
 	}
 
-	return 0;
+	return res;
 }
