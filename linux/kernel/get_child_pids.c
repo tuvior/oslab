@@ -35,7 +35,8 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
         	child = list_entry(p, struct task_struct, sibling);
         	pid = (pid_t) child->pid;
         	res = put_user(pid, list + curr_child);
-       		if (!res) {
+       		if (res != 0) {
+       			read_unlock(&tasklist_lock);
         		return -EFAULT;
        	 	}
        	 	stored_child++;
