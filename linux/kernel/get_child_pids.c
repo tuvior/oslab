@@ -50,7 +50,7 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 	res = put_user(curr_child, num_children);
 
 	// let user know not all pids were stored
-	if (stored_child < curr_child && limit != 0) {
+	if (res == 0 && stored_child < curr_child && limit != 0) {
 		return -ENOBUFS;
 	}
 
