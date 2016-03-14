@@ -12,18 +12,14 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 	int curr_child = 0;
 	int stored_child = 0;
 	pid_t pid;
-	int res;
+	int err;
 
 	// check for pointer validity
-	if (!list) {
-		if (limit > 0) {
-			return -EFAULT;
-		}
-	} else if (!access_ok(VERIFY_READ, list, sizeof(pid_t) * limit)) {
+	if (!list && limit > 0) {
 		return -EFAULT;
-	}
+	} 
 
-	if (!access_ok(VERIFY_READ, num_children, sizeof(size_t))) {
+	if (!num_children) {
 		return -EFAULT;
 	}
 
@@ -34,8 +30,8 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 		if (curr_child < limit) {
 			child = list_entry(p, struct task_struct, sibling);
 			pid = (pid_t) child->pid;
-			res = put_user(pid, list + curr_child);
-			if (res != 0) {
+			err = put_user(pid, list + curr_child);
+			if (err != 0) {
 				read_unlock(&tasklist_lock);
 				return -EFAULT;
 			}
@@ -47,12 +43,12 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 	read_unlock(&tasklist_lock);
 
 	// set num_children
-	res = put_user(curr_child, num_children);
+	err = put_user(curr_child, num_children);
 
 	// let user know not all pids were stored
-	if (res == 0 && stored_child < curr_child && limit != 0) {
+	if (err == 0 && stored_child < curr_child && limit != 0) {
 		return -ENOBUFS;
 	}
 
-	return res;
+	return err;
 }
