@@ -7,6 +7,7 @@ asmlinkage long sys_get_unique_id(int *uiid)
 {
 	static int i_uuid = 0;
 	static DEFINE_SPINLOCK(lock);
+	int id;
 	int ret;
 
 	if (!uiid) {
@@ -16,11 +17,12 @@ asmlinkage long sys_get_unique_id(int *uiid)
 	//take the lock
 	spin_lock(&lock);
 
-	i_uuid++;
-	ret = put_user(i_uuid, uiid);
+	id = ++i_uuid;
 
 	//release the lock
 	spin_unlock(&lock);
+
+	ret = put_user(id, uiid);
 
 	return ret;
 }
