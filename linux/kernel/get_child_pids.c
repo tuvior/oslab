@@ -9,15 +9,15 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 {
 	struct task_struct *child;
 	struct list_head *p;
+	pid_t pid;
 	int curr_child = 0;
 	int stored_child = 0;
-	pid_t pid;
 	int err;
 
 	// check for pointer validity
 	if (!list && limit > 0) {
 		return -EFAULT;
-	} 
+	}
 
 	if (!num_children) {
 		return -EFAULT;
