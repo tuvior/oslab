@@ -23,10 +23,11 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 		return -EFAULT;
 	}
 
+	read_lock(&tasklist_lock);
+
 	// traverse children, if still below limit add to buffer
 	list_for_each(p, &current->children) {
 		if (curr_child < limit) {			
-			read_lock(&tasklist_lock);
 			child = list_entry(p, struct task_struct, sibling);
 			pid = (pid_t) child->pid;
 			read_unlock(&tasklist_lock);
@@ -35,9 +36,12 @@ asmlinkage long sys_get_child_pids(pid_t* list, size_t limit, size_t* num_childr
 				return -EFAULT;
 			}
 			stored_child++;
+			read_lock(&tasklist_lock);
 		}
 		curr_child++;
 	}
+
+	read_unlock(&tasklist_lock);
 
 	// set num_children
 	err = put_user(curr_child, num_children);
