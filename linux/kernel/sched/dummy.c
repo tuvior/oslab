@@ -30,7 +30,11 @@ static inline unsigned int get_age_threshold(void)
 
 void init_dummy_rq(struct dummy_rq *dummy_rq, struct rq *rq)
 {
-	INIT_LIST_HEAD(&dummy_rq->queue);
+	INIT_LIST_HEAD(&dummy_rq->queue15);
+	INIT_LIST_HEAD(&dummy_rq->queue14);
+	INIT_LIST_HEAD(&dummy_rq->queue13);
+	INIT_LIST_HEAD(&dummy_rq->queue12);
+	INIT_LIST_HEAD(&dummy_rq->queue11);
 }
 
 /*
@@ -44,8 +48,32 @@ static inline struct task_struct *dummy_task_of(struct sched_dummy_entity *dummy
 
 static inline void _enqueue_task_dummy(struct rq *rq, struct task_struct *p)
 {
+	int n_prio = p->prio - 120;
 	struct sched_dummy_entity *dummy_se = &p->dummy_se;
-	struct list_head *queue = &rq->dummy.queue;
+
+	// set times that will be handled in the ticks
+	dummy_se->timeslice = DUMMY_TIMESLICE;
+	dummy_se->queue_t = DUMMY_AGE_THRESHOLD;
+	
+	struct list_head *queue;
+	// add to queue relative to niceness value
+	switch(n_prio) {
+		case 11:
+			queue = &rq->dummy.queue11;
+			break;
+		case 12:
+			queue = &rq->dummy.queue12;
+			break;
+		case 13:
+			queue = &rq->dummy.queue13;
+			break;
+		case 14:
+			queue = &rq->dummy.queue14;
+			break;
+		case 15:
+			queue = &rq->dummy.queue15;
+			break;
+	}
 	list_add_tail(&dummy_se->run_list, queue);
 }
 
@@ -73,18 +101,46 @@ static void dequeue_task_dummy(struct rq *rq, struct task_struct *p, int flags)
 
 static void yield_task_dummy(struct rq *rq)
 {
+	struct task_struct *curr = rq->curr;
+	// set priority back to original
+	curr->prio = curr->static_prio;
+
+	resched_task();
 }
 
 static void check_preempt_curr_dummy(struct rq *rq, struct task_struct *p, int flags)
 {
+	struct task_struct *curr = rq->curr;
+	int prio = p->prio;
+
+	if (curr->prio > prio) {
+		resched_task();
+	}
 }
 
 static struct task_struct *pick_next_task_dummy(struct rq *rq, struct task_struct* prev)
 {
 	struct dummy_rq *dummy_rq = &rq->dummy;
 	struct sched_dummy_entity *next;
-	if(!list_empty(&dummy_rq->queue)) {
-		next = list_first_entry(&dummy_rq->queue, struct sched_dummy_entity, run_list);
+	// try to pick from least nice to nicest
+	if(!list_empty(&dummy_rq->queue11)) {
+		next = list_first_entry(&dummy_rq->queue11, struct sched_dummy_entity, run_list);
+                put_prev_task(rq, prev);
+		return dummy_task_of(next);
+	} else if(!list_empty(&dummy_rq->queue12)) {
+		next = list_first_entry(&dummy_rq->queue12, struct sched_dummy_entity, run_list);
+                put_prev_task(rq, prev);
+		return dummy_task_of(next);
+	} else if(!list_empty(&dummy_rq->queue13)) {
+		next = list_first_entry(&dummy_rq->queue13, struct sched_dummy_entity, run_list);
+                put_prev_task(rq, prev);
+		return dummy_task_of(next);
+	} else if(!list_empty(&dummy_rq->queue14)) {
+		next = list_first_entry(&dummy_rq->queue14, struct sched_dummy_entity, run_list);
+                put_prev_task(rq, prev);
+		return dummy_task_of(next);
+	} else if(!list_empty(&dummy_rq->queue15)) {
+		next = list_first_entry(&dummy_rq->queue15, struct sched_dummy_entity, run_list);
                 put_prev_task(rq, prev);
 		return dummy_task_of(next);
 	} else {
@@ -94,14 +150,38 @@ static struct task_struct *pick_next_task_dummy(struct rq *rq, struct task_struc
 
 static void put_prev_task_dummy(struct rq *rq, struct task_struct *prev)
 {
+	// restore priority;
+	prev->prio = prev->static_prio;
+	//_enqueue_task_dummy(rq, prev);
 }
 
 static void set_curr_task_dummy(struct rq *rq)
 {
+	
 }
 
 static void task_tick_dummy(struct rq *rq, struct task_struct *curr, int queued)
 {
+	int n_prio = curr->prio - 120; 
+	struct sched_dummy_entity *dummy_se = &curr->dummy_se;
+	int time_left;
+	if (queued) {
+		time_left = --dummy_se->queue_t;
+		if (time_left == 0) {
+			// time to increase priority
+			if (n_prio > 11) {
+				--curr->prio;
+				_dequeue_task_dummy(p);
+				_enqueue_task_dummy(rq, p);
+			}
+		}
+	} else {
+		time_left = --dummy_se->timeslice;
+		if (time_left == 0) {
+			// time to preempt and reschedule
+			resched_task();
+		}
+	}
 }
 
 static void switched_from_dummy(struct rq *rq, struct task_struct *p)

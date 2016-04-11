@@ -1169,6 +1169,8 @@ struct sched_rt_entity {
 
 struct sched_dummy_entity {
 	struct list_head run_list;
+	unsigned int timeslice;
+	unsigned int queue_t;
 };
 
 struct sched_dl_entity {
