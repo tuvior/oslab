@@ -469,11 +469,7 @@ struct dl_rq {
 };
 
 struct dummy_rq {
-	struct list_head queue15;
-	struct list_head queue14;
-	struct list_head queue13;
-	struct list_head queue12;
-	struct list_head queue11;
+	struct list_head queue[5];
 };
 
 #ifdef CONFIG_SMP
